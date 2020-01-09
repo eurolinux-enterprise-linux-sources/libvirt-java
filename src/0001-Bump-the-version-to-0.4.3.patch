@@ -1,0 +1,113 @@
+From 06da0670bded6b0710f6e214bf2a8f2a93177df2 Mon Sep 17 00:00:00 2001
+From: Bryan Kearney <bkearney@redhat.com>
+Date: Fri, 14 May 2010 14:20:12 -0400
+Subject: [PATCH] Bump the version to 0.4.3
+
+---
+ build.properties     |    2 +-
+ build.xml            |   56 +++++++++++++++++++++++++++++++++++++++++---------
+ libvirt-java.spec.in |    6 +++++
+ 3 files changed, 53 insertions(+), 11 deletions(-)
+
+diff --git a/build.properties b/build.properties
+index 50c3c96..19910f3 100644
+--- a/build.properties
++++ b/build.properties
+@@ -1,4 +1,4 @@
+-version=0.4.2
++version=0.4.3
+ release=1
+ libvirt.required=0.7.1
+ java.required=1:1.5.0
+diff --git a/build.xml b/build.xml
+index 8d79fb8..94a59fe 100644
+--- a/build.xml
++++ b/build.xml
+@@ -83,21 +83,57 @@
+ 		</copy>
+ 		<path id="maven-ant-tasks.classpath" path="target/maven-ant-tasks-2.1.0.jar" />
+ 		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" classpathref="maven-ant-tasks.classpath" />
++		<input message="Username for copying source files: "
++		       addproperty="scp.username"/>
++		<input message="Passphrase: "
++		       addproperty="scp.passphrase"/>	
++		  <scp file="${scp.username}@www.libvirt.org:/data/www/maven2"
++		       todir="target/repo"
++		       keyfile="${user.home}/.ssh/id_rsa"
++		  	   sftp="true"
++		       passphrase="${scp.passphrase}"
++		  />		
+ 		<artifact:pom id="mypom" file="target/pom.xml" />
+ 		<artifact:install file="${jar.file}">
+ 			<localRepository path="target/repo" />
+ 			<pom refid="mypom" />
+ 		</artifact:install>
+-		<checksum algorithm="md5">
+-			<fileset dir="target/repo">
+-			</fileset>
+-		</checksum>
+-		<checksum algorithm="sha1">
+-			<fileset dir="target/repo">
+-				<exclude name="**/*.md5" />
+-			</fileset>
+-		</checksum>
+-
++		  <scp todir="${scp.username}@www.libvirt.org:/data/www/maven2"
++		       keyfile="${user.home}/.ssh/id_rsa"
++		  	   sftp="true"
++		       passphrase="${scp.passphrase}">
++				<fileset dir="target/repo">
++				</fileset>				  	
++		  	</scp>
++	</target>
++	
++	<target name="publish_source" depends="build">	
++		<input message="Username for copying source files: "
++		       addproperty="scp.username"/>
++		<input message="Passphrase: "
++		       addproperty="scp.passphrase"/>		
++		  <scp file="${src.file}"
++		       todir="${scp.username}@www.libvirt.org:/data/ftp/libvirt/java"
++		       keyfile="${user.home}/.ssh/id_rsa"
++		  	   sftp="true"
++		       passphrase="${scp.passphrase}"
++		  />
++		
+ 	</target>
++	
++	<target name="publish_srpm" depends="build">	
++		<input message="Username for copying source files: "
++		       addproperty="scp.username"/>
++		<input message="Passphrase: "
++		       addproperty="scp.passphrase"/>			
++		  <scp todir="${scp.username}@www.libvirt.org:/data/ftp/libvirt/java"
++		       keyfile="${user.home}/.ssh/id_rsa"
++		  	   sftp="true"
++		       passphrase="${scp.passphrase}">
++			<fileset dir="${rpm.topdir}/SRPMS">
++				<include name="libvirt-java-${version}-${release}*.src.rpm"/>
++			</fileset>		
++			</scp>
++	</target>	
+ 
+ </project>
+diff --git a/libvirt-java.spec.in b/libvirt-java.spec.in
+index bbc41f1..a01b995 100644
+--- a/libvirt-java.spec.in
++++ b/libvirt-java.spec.in
+@@ -86,6 +86,12 @@ rm -rf %{buildroot}
+ %{_javadocdir}/%{name}
+ 
+ %changelog
++* Fri May 14 2010 Bryan Kearney <bkearney@redhat.com> - 0.4.3-1
++- Added libvirt API support for up to 0.7.1
++- Reduce java dependencies to 1.5
++- Improved packaging for javadocs
++- Better Free/Close handling
++
+ * Fri Jan 29 2010 Bryan Kearney <bkearney@redhat.com> - 0.4.2-1
+ - Changed Scheduled Parameters to be a Union instead of a Struct.
+ - Better Pointer mappings in the error callback
+-- 
+1.6.6.1
+
