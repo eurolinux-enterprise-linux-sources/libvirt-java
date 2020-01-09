@@ -5,6 +5,9 @@ import org.libvirt.jna.SecretPointer;
 
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
+import com.sun.jna.ptr.LongByReference;
+import com.sun.jna.Pointer;
+import java.nio.ByteBuffer;
 
 /**
  * A secret defined by libvirt
@@ -39,7 +42,7 @@ public class Secret {
 
     /**
      * Release the secret handle. The underlying secret continues to exist.
-     * 
+     *
      * @throws LibvirtException
      * @return 0 on success, or -1 on error.
      */
@@ -57,7 +60,7 @@ public class Secret {
     /**
      * Get the unique identifier of the object with which this secret is to be
      * used.
-     * 
+     *
      * @return a string identifying the object using the secret, or NULL upon
      *         error
      * @throws LibvirtException
@@ -70,7 +73,7 @@ public class Secret {
 
     /**
      * Get the UUID for this secret.
-     * 
+     *
      * @return the UUID as an unpacked int array
      * @throws LibvirtException
      * @see <a href="http://www.ietf.org/rfc/rfc4122.txt">rfc4122</a>
@@ -88,7 +91,7 @@ public class Secret {
 
     /**
      * Gets the UUID for this secret as string.
-     * 
+     *
      * @return the UUID in canonical String format
      * @throws LibvirtException
      * @see <a href="http://www.ietf.org/rfc/rfc4122.txt">rfc4122</a>
@@ -105,19 +108,35 @@ public class Secret {
     }
 
     /**
-     * Fetches the value of the secret
-     * 
+     * Fetches the value of the secret as a string (note that
+     * this may not always work and getByteValue() is more reliable)
+     * This is just kept for backward compatibility
+     *
      * @return the value of the secret, or null on failure.
      */
     public String getValue() throws LibvirtException {
-        String returnValue = libvirt.virSecretGetValue(VSP, new NativeLong(), 0);
+        String returnValue = new String(getByteValue());
+        return returnValue;
+    }
+
+    /**
+     * Fetches the value of the secret as a byte array
+     *
+     * @return the value of the secret, or null on failure.
+     */
+    public byte[] getByteValue() throws LibvirtException {
+        LongByReference value_size = new LongByReference();
+        Pointer value = libvirt.virSecretGetValue(VSP, value_size, 0);
         processError();
+        ByteBuffer bb = value.getByteBuffer(0, value_size.getValue());
+        byte[] returnValue = new byte[bb.remaining()];
+        bb.get(returnValue);
         return returnValue;
     }
 
     /**
      * Fetches an XML document describing attributes of the secret.
-     * 
+     *
      * @return the XML document
      */
     public String getXMLDesc() throws LibvirtException {
@@ -136,7 +155,7 @@ public class Secret {
 
     /**
      * Sets the value of the secret
-     * 
+     *
      * @return 0 on success, -1 on failure.
      */
     public int setValue(String value) throws LibvirtException {
@@ -146,8 +165,19 @@ public class Secret {
     }
 
     /**
+     * Sets the value of the secret
+     *
+     * @return 0 on success, -1 on failure.
+     */
+    public int setValue(byte[] value) throws LibvirtException {
+        int returnValue = libvirt.virSecretSetValue(VSP, value, new NativeLong(value.length), 0);
+        processError();
+        return returnValue;
+    }
+
+    /**
      * Undefines, but does not free, the Secret.
-     * 
+     *
      * @return 0 on success, -1 on failure.
      */
     public int undefine() throws LibvirtException {

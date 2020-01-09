@@ -10,9 +10,9 @@ import com.sun.jna.Native;
 
 /**
  * The abstract parent of the actual Schedparameter classes
- * 
+ *
  * @author stoty
- * 
+ *
  */
 public abstract class SchedParameter {
 
@@ -24,13 +24,13 @@ public abstract class SchedParameter {
                     returnValue = new SchedIntParameter(vParam.value.i);
                     break;
                 case (2):
-                    returnValue = new SchedUintParameter(vParam.value.ui);
+                    returnValue = new SchedUintParameter(vParam.value.i);
                     break;
                 case (3):
                     returnValue = new SchedLongParameter(vParam.value.l);
                     break;
                 case (4):
-                    returnValue = new SchedUlongParameter(vParam.value.ul);
+                    returnValue = new SchedUlongParameter(vParam.value.l);
                     break;
                 case (5):
                     returnValue = new SchedDoubleParameter(vParam.value.d);
@@ -55,7 +55,7 @@ public abstract class SchedParameter {
                 returnValue.value.setType(int.class);
                 break;
             case (2):
-                returnValue.value.ui = ((SchedUintParameter) param).value;
+                returnValue.value.i = ((SchedUintParameter) param).value;
                 returnValue.value.setType(int.class);
                 break;
             case (3):
@@ -63,7 +63,7 @@ public abstract class SchedParameter {
                 returnValue.value.setType(long.class);
                 break;
             case (4):
-                returnValue.value.ul = ((SchedUlongParameter) param).value;
+                returnValue.value.l = ((SchedUlongParameter) param).value;
                 returnValue.value.setType(long.class);
                 break;
             case (5):
@@ -78,7 +78,7 @@ public abstract class SchedParameter {
         }
         return returnValue;
     }
-    
+
     public static byte[] copyOf(byte[] original, int length) {
         byte[] returnValue = new byte[length];
         int originalLength = original.length ;
@@ -96,21 +96,21 @@ public abstract class SchedParameter {
 
     /**
      * The type of the parameter
-     * 
+     *
      * @return the Type of the parameter
      */
     public abstract int getType();
 
     /**
      * Utility function for displaying the type
-     * 
+     *
      * @return the Type of the parameter as string
      */
     public abstract String getTypeAsString();
 
     /**
      * Utility function for displaying the value
-     * 
+     *
      * @return the value of the parameter in String form
      */
     public abstract String getValueAsString();

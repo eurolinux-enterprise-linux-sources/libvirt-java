@@ -12,6 +12,21 @@ import org.libvirt.jna.virError;
  */
 public class Error implements Serializable {
 
+    /**
+     * Returns the element of the given array at the specified index,
+     * or the last element of the array if the index is not less than
+     * {@code values.length}.
+     *
+     * @return n-th item of {@code values} when {@code n <
+     *          values.length}, otherwise the last item of {@code values}.
+     */
+    private static final <T> T safeElementAt(final int n, final T[] values) {
+        assert(n >= 0 && values.length > 0);
+
+        int idx = Math.min(n, values.length - 1);
+        return values[idx];
+    }
+
     public static enum ErrorDomain {
         VIR_FROM_NONE, VIR_FROM_XEN, /* Error at Xen hypervisor layer */
         VIR_FROM_XEND, /* Error at connection with xend daemon */
@@ -42,8 +57,29 @@ public class Error implements Serializable {
         VIR_FROM_ONE, /* Error from OpenNebula driver */
         VIR_FROM_ESX, /* Error from ESX driver */
         VIR_FROM_PHYP, /* Error from IBM power hypervisor */
-        VIR_FROM_SECRET
-        /* Error from secret storage */
+        VIR_FROM_SECRET, /* Error from secret storage */
+        VIR_FROM_CPU, /* Error from CPU driver */
+        VIR_FROM_XENAPI, /* Error from XenAPI */
+        VIR_FROM_NWFILTER, /* Error from network filter driver */
+        VIR_FROM_HOOK, /* Error from Synchronous hooks */
+        VIR_FROM_DOMAIN_SNAPSHOT, /* Error from domain snapshot */
+        VIR_FROM_AUDIT, /* Error from auditing subsystem */
+        VIR_FROM_SYSINFO, /* Error from sysinfo/SMBIOS */
+        VIR_FROM_STREAMS, /* Error from I/O streams */
+        VIR_FROM_VMWARE, /* Error from VMware driver */
+        VIR_FROM_EVENT, /* Error from event loop impl */
+        VIR_FROM_LIBXL, /* Error from libxenlight driver */
+        VIR_FROM_LOCKING, /* Error from lock manager */
+        VIR_FROM_HYPERV, /* Error from Hyper-V driver */
+        VIR_FROM_CAPABILITIES, /* Error from capabilities */
+        VIR_FROM_URI, /* Error from URI handling */
+        VIR_FROM_AUTH, /* Error from auth handling */
+        VIR_FROM_DBUS, /* Error from DBus */
+        VIR_FROM_UNKNOWN; /* unknown error domain (must be the last entry!) */
+
+        protected static final ErrorDomain wrap(int value) {
+            return safeElementAt(value, values());
+        }
     }
 
     public static enum ErrorLevel {
@@ -55,7 +91,13 @@ public class Error implements Serializable {
         /**
          * An error
          */
-        VIR_ERR_ERROR
+        VIR_ERR_ERROR,
+
+        VIR_ERR_UNKNOWN; /* must be the last entry! */
+
+        protected static final ErrorLevel wrap(int value) {
+            return safeElementAt(value, values());
+        }
     }
 
     public static enum ErrorNumber {
@@ -123,13 +165,37 @@ public class Error implements Serializable {
         VIR_ERR_MULTIPLE_INTERFACES, /* more than one matching interface found */
         VIR_WAR_NO_SECRET, /* failed to start secret storage */
         VIR_ERR_INVALID_SECRET, /* invalid secret */
-        VIR_ERR_NO_SECRET
-        /* secret not found */
+        VIR_ERR_NO_SECRET, /* secret not found */
+        VIR_ERR_CONFIG_UNSUPPORTED, /* unsupported configuration construct */
+        VIR_ERR_OPERATION_TIMEOUT, /* timeout occurred during operation */
+        VIR_ERR_MIGRATE_PERSIST_FAILED, /* a migration worked, but making the
+                                           VM persist on the dest host failed */
+        VIR_ERR_HOOK_SCRIPT_FAILED, /* a synchronous hook script failed */
+        VIR_ERR_INVALID_DOMAIN_SNAPSHOT, /* invalid domain snapshot */
+        VIR_ERR_NO_DOMAIN_SNAPSHOT, /* domain snapshot not found */
+        VIR_ERR_INVALID_STREAM, /* stream pointer not valid */
+        VIR_ERR_ARGUMENT_UNSUPPORTED, /* valid API use but unsupported by
+                                           the given driver */
+        VIR_ERR_STORAGE_PROBE_FAILED, /* storage pool probe failed */
+        VIR_ERR_STORAGE_POOL_BUILT, /* storage pool already built */
+        VIR_ERR_SNAPSHOT_REVERT_RISKY, /* force was not requested for a
+                                           risky domain snapshot revert */
+        VIR_ERR_OPERATION_ABORTED, /* operation on a domain was
+                                           canceled/aborted by user */
+        VIR_ERR_AUTH_CANCELLED, /* authentication cancelled */
+        VIR_ERR_NO_DOMAIN_METADATA, /* The metadata is not present */
+        VIR_ERR_MIGRATE_UNSAFE, /* Migration is not safe */
+        VIR_ERR_OVERFLOW, /* integer overflow */
+        VIR_ERR_BLOCK_COPY_ACTIVE, /* action prevented by block copy job */
+        VIR_ERR_UNKNOWN; /* unknown error (must be the last entry!) */
 
+        protected static final ErrorNumber wrap(int value) {
+            return safeElementAt(value, values());
+        }
     }
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -4780109197014633842L;
 
@@ -146,14 +212,10 @@ public class Error implements Serializable {
     int int2;
     NetworkPointer VNP; /* Deprecated */
 
-    public Error() {
-
-    }
-
     public Error(virError vError) {
-        code = ErrorNumber.values()[vError.code];
-        domain = ErrorDomain.values()[vError.domain];
-        level = ErrorLevel.values()[vError.level];
+        code = code.wrap(vError.code);
+        domain = domain.wrap(vError.domain);
+        level = level.wrap(vError.level);
         message = vError.message;
         str1 = vError.str1;
         str2 = vError.str2;
@@ -167,7 +229,7 @@ public class Error implements Serializable {
 
     /**
      * Gets he error code
-     * 
+     *
      * @return a VirErroNumber
      */
     public ErrorNumber getCode() {
@@ -177,7 +239,7 @@ public class Error implements Serializable {
     /**
      * returns the Connection associated with the error, if available
      * Deprecated, always throw an exception now
-     * 
+     *
      * @return the Connect object
      * @throws ErrorException
      * @deprecated
@@ -189,7 +251,7 @@ public class Error implements Serializable {
 
     /**
      * returns the Domain associated with the error, if available
-     * 
+     *
      * @return Domain object
      * @throws ErrorException
      * @deprecated
@@ -201,7 +263,7 @@ public class Error implements Serializable {
 
     /**
      * Tells What part of the library raised this error
-     * 
+     *
      * @return a ErrorDomain
      */
     public ErrorDomain getDomain() {
@@ -224,7 +286,7 @@ public class Error implements Serializable {
 
     /**
      * Tells how consequent is the error
-     * 
+     *
      * @return a ErrorLevel
      */
     public ErrorLevel getLevel() {
@@ -233,7 +295,7 @@ public class Error implements Serializable {
 
     /**
      * Returns human-readable informative error messag
-     * 
+     *
      * @return error message
      */
     public String getMessage() {
@@ -242,7 +304,7 @@ public class Error implements Serializable {
 
     /**
      * Returns the network associated with the error, if available
-     * 
+     *
      * @return Network object
      * @throws ErrorException
      * @deprecated
@@ -276,7 +338,7 @@ public class Error implements Serializable {
     /**
      * Does this error has a valid Connection object attached? NOTE: deprecated,
      * should return false
-     * 
+     *
      * @return false
      */
     public boolean hasConn() {
@@ -286,7 +348,7 @@ public class Error implements Serializable {
     /**
      * Does this error has a valid Domain object attached? NOTE: deprecated,
      * should return false
-     * 
+     *
      * @return false
      */
     public boolean hasDom() {
@@ -296,7 +358,7 @@ public class Error implements Serializable {
     /**
      * Does this error has a valid Network object attached? NOTE: deprecated,
      * should return false
-     * 
+     *
      * @return false
      */
     public boolean hasNet() {
