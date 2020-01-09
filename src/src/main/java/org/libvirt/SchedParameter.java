@@ -47,30 +47,46 @@ public abstract class SchedParameter {
     public static virSchedParameter toNative(SchedParameter param) {
         virSchedParameter returnValue = new virSchedParameter();
         returnValue.value = new virSchedParameterValue();
-        returnValue.field = Arrays.copyOf(param.field.getBytes(), Libvirt.VIR_DOMAIN_SCHED_FIELD_LENGTH);
+        returnValue.field = copyOf(param.field.getBytes(), Libvirt.VIR_DOMAIN_SCHED_FIELD_LENGTH);
         returnValue.type = param.getType();
         switch (param.getType()) {
             case (1):
                 returnValue.value.i = ((SchedIntParameter) param).value;
+                returnValue.value.setType(int.class);
                 break;
             case (2):
                 returnValue.value.ui = ((SchedUintParameter) param).value;
+                returnValue.value.setType(int.class);
                 break;
             case (3):
                 returnValue.value.l = ((SchedLongParameter) param).value;
+                returnValue.value.setType(long.class);
                 break;
             case (4):
                 returnValue.value.ul = ((SchedUlongParameter) param).value;
+                returnValue.value.setType(long.class);
                 break;
             case (5):
                 returnValue.value.d = ((SchedDoubleParameter) param).value;
+                returnValue.value.setType(double.class);
                 break;
             case (6):
                 returnValue.value.b = (byte) (((SchedBooleanParameter) param).value ? 1 : 0);
+                returnValue.value.setType(byte.class);
                 break;
 
         }
         return returnValue;
+    }
+    
+    public static byte[] copyOf(byte[] original, int length) {
+        byte[] returnValue = new byte[length];
+        int originalLength = original.length ;
+        Arrays.fill(returnValue, (byte)0);
+        for (int x = 0 ; x < originalLength ; x++) {
+            returnValue[x] = original[x] ;
+        }
+        return returnValue ;
     }
 
     /**

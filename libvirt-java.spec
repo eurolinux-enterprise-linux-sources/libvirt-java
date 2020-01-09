@@ -1,8 +1,8 @@
 Summary:    Java bindings for the libvirt virtualization API
 Name:       libvirt-java
-Version:    0.4.5
+Version:    0.4.7
 Prefix:     libvirt
-Release:    2%{?dist}
+Release:    1%{?dist}
 License:    LGPLv2+
 BuildArch:  noarch
 Group:      Development/Libraries
@@ -10,12 +10,8 @@ Source:     http://libvirt.org/sources/java/%{name}-%{version}.tar.gz
 URL:        http://libvirt.org/
 BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root
 
-# https://bugzilla.redhat.com/show_bug.cgi?id=582294
-# extraneous CopyOf from java-1.6 broke that release
-Patch0:     libvirt-java-0.4.5-copy-of.patch
-
 Requires:   jna
-Requires:   libvirt-client >= 0.8.1
+Requires:   libvirt-client >= 0.8.2
 Requires:   java >= 1.5.0
 Requires:   jpackage-utils
 BuildRequires:  ant
@@ -33,7 +29,7 @@ BuildRequires:  jpackage-utils
 %description
 Libvirt-java is a base framework allowing to use libvirt, the virtualization
 API though the Java programming language.
-It requires libvirt-client >= 0.8.1
+It requires libvirt-client >= 0.8.2
 
 %package    devel
 Summary:    Compressed Java source files for %{name}
@@ -55,7 +51,6 @@ Requires:   jpackage-utils
 API documentation for %{name}.
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 ant build docs
@@ -91,6 +86,14 @@ rm -rf %{buildroot}
 %{_javadocdir}/%{name}
 
 %changelog
+* Fri Feb  4 2011 Daniel Veillard <veillard@redhat.com> - 0.4.7-1
+- rebase to 0.4.7
+- Added libvirt support up to 0.8.2 API
+- Only throw errors on real errors.
+- Remote non thread safe error reporting
+- fix 600819 Incorrect scheduler parameter value passed to native API.
+- Resolves: rhbz#675044
+
 * Thu Jul  8 2010 Daniel Veillard <veillard@redhat.com> - 0.4.5-2
 - extraneous CopyOf from java-1.6 broke the release on old java versions
 - Resolves: rhbz#582294
