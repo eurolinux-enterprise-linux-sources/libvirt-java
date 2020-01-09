@@ -2,13 +2,14 @@ Summary:    Java bindings for the libvirt virtualization API
 Name:       libvirt-java
 Version:    0.4.7
 Prefix:     libvirt
-Release:    1%{?dist}
+Release:    1%{?dist}%{?extra_release}.1
 License:    LGPLv2+
 BuildArch:  noarch
 Group:      Development/Libraries
 Source:     http://libvirt.org/sources/java/%{name}-%{version}.tar.gz
 URL:        http://libvirt.org/
 BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root
+Patch0: libvirt-java-0.4.7-fix-jna-passing-of-scheduler-parameters.patch
 
 Requires:   jna
 Requires:   libvirt-client >= 0.8.2
@@ -51,6 +52,7 @@ Requires:   jpackage-utils
 API documentation for %{name}.
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 ant build docs
@@ -86,6 +88,9 @@ rm -rf %{buildroot}
 %{_javadocdir}/%{name}
 
 %changelog
+* Tue Jul  3 2012 Daniel Veillard <veillard@redhat.com> - 0.4.7-1.el6_3.1
+- fix scheduler call parameter breakage with jna (rhbz#836920)
+
 * Fri Feb  4 2011 Daniel Veillard <veillard@redhat.com> - 0.4.7-1
 - rebase to 0.4.7
 - Added libvirt support up to 0.8.2 API
