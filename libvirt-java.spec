@@ -2,7 +2,7 @@ Summary:    Java bindings for the libvirt virtualization API
 Name:       libvirt-java
 Version:    0.4.9
 Prefix:     libvirt
-Release:    3%{?dist}%{?extra_release}
+Release:    4%{?dist}%{?extra_release}
 License:    MIT
 BuildArch:  noarch
 Group:      Development/Libraries
@@ -92,6 +92,9 @@ rm -rf %{buildroot}
 %{_javadocdir}/%{name}
 
 %changelog
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 0.4.9-4
+- Mass rebuild 2013-12-27
+
 * Mon Mar 18 2013 Cole Robinson <crobinso@redhat.com> - 0.4.9-3
 - Fix FTBFS issue (bz #914153)
 
